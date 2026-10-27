@@ -79,17 +79,16 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins or [
+    allow_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "https://indigeo-git-main-piyush01andriods-projects.vercel.app",
         "https://*.vercel.app",
-    ],
+    ] + (settings.cors_origins or []),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 install_exception_handlers(app)
 # Load balancers and container probes normally ask for /health, but the API lives under a
 # prefix; this alias reuses the same handler so both URLs report the same instance state.
