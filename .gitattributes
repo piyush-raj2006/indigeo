@@ -1,0 +1,15 @@
+# Normalize line endings so Windows checkouts do not churn the whole tree.
+* text=auto eol=lf
+
+# Keep binary assets untouched.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.db binary
+*.duckdb binary

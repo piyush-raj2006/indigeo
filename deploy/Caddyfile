@@ -1,0 +1,24 @@
+# Reverse proxy for the optional "proxy" compose profile.
+#
+# Caddy obtains and renews certificates automatically, so both hostnames must resolve to
+# this host and ports 80/443 must be reachable. TLS terminates here; the api/web
+# containers stay bound to loopback on the host.
+
+{$APP_HOST} {
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+	}
+	reverse_proxy web:3000
+}
+
+{$API_HOST} {
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+	}
+	reverse_proxy api:8000
+}

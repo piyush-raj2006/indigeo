@@ -1,0 +1,1 @@
+"""IndiGeo app package."""

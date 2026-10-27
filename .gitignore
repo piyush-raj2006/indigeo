@@ -1,0 +1,80 @@
+# ---------------------------------------------------------------------------
+# IndiGeo — repository ignores
+# Runtime secrets, local state and build outputs never leave the machine.
+# ---------------------------------------------------------------------------
+
+# --- secrets / local environment -------------------------------------------
+.env
+.env.*
+!.env.example
+!.env.production
+*.pem
+*.key
+*cookie*.txt
+
+# --- node -------------------------------------------------------------------
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# --- next.js / frontend build output ---------------------------------------
+.next/
+out/
+build/
+dist/
+coverage/
+*.tsbuildinfo
+.vercel
+next-env.d.ts
+
+# --- python -----------------------------------------------------------------
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.hypothesis/
+
+# --- runtime state (databases, caches, downloaded rasters/extracts) ----------
+data/*
+!data/api_samples/
+data/api_samples/*
+!data/api_samples/*.json
+*.db
+*.db-shm
+*.db-wal
+*.duckdb
+*.duckdb.wal
+*.duckdb.tmp
+data/http_cache/
+data/next_dev.log
+data/next_start.log
+data/provider_status.json
+
+# --- local logs and scratch API dumps --------------------------------------
+*.log
+logs/
+/_*.json
+
+# --- OS / editor ------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp

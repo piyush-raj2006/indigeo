@@ -1,0 +1,1 @@
+"""IndiGeo core package."""

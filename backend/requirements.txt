@@ -1,0 +1,44 @@
+# IndiGeo backend
+# Pinned during the 2026-10-25 bootstrap install on CPython 3.11 / Windows x64.
+# Versions below are the resolved set recorded by `pip freeze` into backend/requirements.lock.txt.
+
+# API layer
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+python-multipart
+python-dotenv
+orjson
+tenacity
+httpx
+
+# Persistence
+SQLAlchemy
+Alembic
+duckdb
+pyarrow
+
+# Geospatial
+geopandas
+pyogrio
+shapely
+pyproj
+rasterio
+numpy
+pandas
+
+# Graph / optimisation
+networkx
+ortools
+
+# AI / ML
+scikit-learn
+lightgbm
+xgboost
+shap
+
+# Testing
+pytest
+pytest-asyncio
+respx

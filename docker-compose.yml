@@ -1,0 +1,95 @@
+# IndiGeo production-shaped stack.
+#
+#   cp .env.example .env          # then edit CORS_ORIGINS and NEXT_PUBLIC_API_BASE
+#   docker compose build          # NEXT_PUBLIC_API_BASE is baked into the bundle here
+#   docker compose up -d
+#   ..\.venv\Scripts\python.exe scripts\verify_deployment.py
+#
+# Production uses the checked-in template and the optional TLS proxy:
+#   docker compose --env-file .env.production build
+#   docker compose --env-file .env.production up -d
+#   docker compose --env-file .env.production --profile proxy up -d
+# ENV_FILE selects which env file the API container reads (default `.env`).
+#
+# Why only two services: the data tier is embedded. SQLite holds stored analyses and the
+# job table, DuckDB-Spatial holds the national layers, and the cache is in-process (TTL+LRU).
+# There is deliberately no Postgres/PostGIS or Redis service here, because this build does
+# not talk to either: backend/app/gis/spatial_postgis.py does not exist, so
+# SPATIAL_BACKEND=postgis fails at import. Adding idle containers would advertise a backend
+# that is not implemented.
+#
+# Why the API runs one uvicorn worker: DuckDB is a single-writer file and analysis jobs run
+# on an in-process thread pool. A second process would open competing writers and duplicate
+# the job executor. Throughput comes from ANALYSIS_WORKERS thread slots inside this process.
+
+name: indigeo
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  api:
+    build:
+      context: ./backend
+    image: indigeo-api:${TAG:-local}
+    restart: unless-stopped
+    env_file:
+      - ${ENV_FILE:-.env}
+    # Host state. The directory must already contain indigeo_spatial.duckdb and dem/
+    # (built with scripts/run_ingest.py); an empty directory is a valid but degraded boot —
+    # /health reports zero layers and analyses report the coastline as unmeasured.
+    volumes:
+      - ${INDIGEO_DATA_DIR:-./data}:/data
+    ports:
+      # Loopback by default: terminate TLS in a reverse proxy and proxy to this port.
+      - "${API_BIND:-127.0.0.1}:8000:8000"
+    stop_grace_period: 30s
+    logging: *default-logging
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        # NEXT_PUBLIC_* is inlined at build time, so this is a build input, not runtime config.
+        NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:?set NEXT_PUBLIC_API_BASE in .env (e.g. https://api.example.org/api/v1)}
+    image: indigeo-web:${TAG:-local}
+    restart: unless-stopped
+    ports:
+      - "${WEB_BIND:-127.0.0.1}:3000:3000"
+    depends_on:
+      # Only for start-up ordering; the browser, not this container, calls the API.
+      api:
+        condition: service_started
+    logging: *default-logging
+
+  proxy:
+    # Optional TLS terminator. Opt in with: docker compose --profile proxy up -d
+    # It needs DNS for APP_HOST/API_HOST, ports 80/443 reachable, and a real ACME-capable
+    # hostname; without those use your own reverse proxy in front of the loopback ports.
+    image: caddy:2-alpine
+    profiles: ["proxy"]
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_started
+      web:
+        condition: service_started
+    environment:
+      APP_HOST: ${APP_HOST:?set APP_HOST to the public frontend hostname (no scheme)}
+      API_HOST: ${API_HOST:?set API_HOST to the public API hostname (no scheme)}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    logging: *default-logging
+
+volumes:
+  caddy_data:
+  caddy_config:

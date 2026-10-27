@@ -1,0 +1,11 @@
+# IndiGeo backend image context
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+data/
+*.duckdb
+*.duckdb.wal
+*.db
+*.log
+.env

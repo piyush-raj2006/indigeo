@@ -1,0 +1,1 @@
+"""IndiGeo schemas package."""
