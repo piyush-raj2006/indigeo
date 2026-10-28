@@ -1,0 +1,43 @@
+# Render blueprint for the IndiGeo API.
+#
+# The Next.js frontend is deployed on Vercel (see frontend/vercel.json); this file only
+# describes the FastAPI service, because a Vercel project cannot host a Python process.
+#
+# Deploy: Render Dashboard -> New -> Blueprint -> pick this repository.
+# Values marked `sync: false` are not stored in the repository; Render prompts for them.
+
+services:
+  - type: web
+    name: indigeo-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /api/v1/health
+    autoDeploy: true
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      # Exact browser origin(s) of the deployed frontend, scheme included, no trailing
+      # slash. Example: https://indigeo.vercel.app
+      - key: CORS_ORIGINS
+        sync: false
+      # Preview deployments get a new hostname per branch, so they are matched by pattern
+      # rather than listed one by one. Narrow this to your project if it is not "indigeo".
+      - key: CORS_ORIGIN_REGEX
+        value: '^https://indigeo(-[a-z0-9-]+)?\.vercel\.app$'
+      # Nominatim's usage policy requires a real contact address here.
+      - key: NOMINATIM_USER_AGENT
+        sync: false
+      # Optional. Empty means the source is reported as a gap, never as "no alerts".
+      - key: FIRMS_MAP_KEY
+        sync: false
+      - key: EARTHDATA_TOKEN
+        sync: false
+    # The API writes its SQLite and DuckDB state under /data. Without the disk below the
+    # filesystem is ephemeral: analyses and the ingested boundary layers are lost on every
+    # deploy. Disks require a paid instance type, so this is opt-in.
+    # disk:
+    #   name: indigeo-data
+    #   mountPath: /data
+    #   sizeGB: 1

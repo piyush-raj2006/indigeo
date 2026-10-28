@@ -1,7 +1,12 @@
 // The runtime stage of frontend/Dockerfile copies public/ and .next/static into the
 // standalone bundle. A local `npm start` needs the same layout: .next/standalone/server.js
 // does not read the project root, so without this copy every /_next/static request 404s.
+// Vercel builds without standalone output and serves those assets itself.
 import { cpSync, existsSync } from "node:fs";
+
+if (process.env.VERCEL || !existsSync(".next/standalone")) {
+  process.exit(0);
+}
 
 for (const [from, to] of [
   ["public", ".next/standalone/public"],

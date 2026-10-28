@@ -55,6 +55,8 @@ RUN python -c "import duckdb; con = duckdb.connect(); con.execute('INSTALL spati
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=25s --retries=3 \
-    CMD curl -fsS "http://127.0.0.1:8000/api/v1/health" >/dev/null || exit 1
+    CMD curl -fsS "http://127.0.0.1:${PORT:-8000}/api/v1/health" >/dev/null || exit 1
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--proxy-headers", "--forwarded-allow-ips", "*"]
+# Render (and most PaaS) inject PORT and route traffic to it; binding the build-time default
+# would fail the port scan. Shell form so ${PORT} expands.
+CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --proxy-headers --forwarded-allow-ips '*'"]

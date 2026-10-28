@@ -79,14 +79,13 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "https://indigeo-git-main-piyush01andriods-projects.vercel.app",
-        "https://*.vercel.app",
-    ] + (settings.cors_origins or []),
-    allow_credentials=True,
-    allow_methods=["*"],
+    # Deployed origins come from configuration, never from source. A literal
+    # "https://*.vercel.app" entry does not work: Starlette matches exact strings, so
+    # preview deployments belong in CORS_ORIGIN_REGEX.
+    allow_origins=settings.cors_origins,
+    allow_origin_regex=settings.cors_origin_regex or None,
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 install_exception_handlers(app)

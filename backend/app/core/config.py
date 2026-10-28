@@ -124,6 +124,9 @@ class Settings(BaseSettings):
     cors_origins: Annotated[list[str], NoDecode] = Field(
         default_factory=lambda: ["http://localhost:3000", "http://127.0.0.1:3000"]
     )
+    # Starlette matches allow_origins exactly. Preview deployments rotate their hostname,
+    # so they are matched by pattern instead, e.g. ^https://indigeo(-[a-z0-9-]+)?\.vercel\.app$
+    cors_origin_regex: str = ""
     api_require_key: bool = False
     api_keys: Annotated[list[str], NoDecode] = Field(default_factory=list)
     emergency_require_approval: bool = True
